@@ -55,6 +55,16 @@ export const saveBehavior = (studentName: string, record: BehaviorRecord) => {
   localStorage.setItem(STORAGE_KEY_BEHAVIORS, JSON.stringify(current));
 };
 
+export const deleteBehavior = (studentName: string, id: string) => {
+  try {
+    const current = getBehaviors();
+    if (current[studentName]) {
+      current[studentName] = current[studentName].filter(b => b.id !== id);
+      localStorage.setItem(STORAGE_KEY_BEHAVIORS, JSON.stringify(current));
+    }
+  } catch (e) { console.error(e); }
+};
+
 // --- Diary ---
 export const getDiary = (studentName: string): DiaryEntry[] => {
   try {

@@ -59,7 +59,7 @@ const StudentPortal: React.FC = () => {
   };
 
   const handleDeleteDiary = (id: string) => {
-    if (window.confirm("ลบบันทึกนี้?")) {
+    if (window.confirm("คุณต้องการลบบันทึกนี้ใช่หรือไม่? การลบจะไม่สามารถกู้คืนได้")) {
       deleteDiary(id);
       loadStudentData();
     }
