@@ -3,8 +3,16 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>StarTrack DEMO</title>
+
+    <!-- Tailwind -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- ฟอนต์ Sarabun -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
     <style>
       body {
         font-family: 'Sarabun', Arial, sans-serif;
@@ -165,7 +173,7 @@
       
       .test-res {
         margin:1em 0;
-        background: #d9fff5; /* Changed to greenish from original #f3ffde but kept consistent with logic */
+        background: #d9fff5;
         color:#575;
         border-radius:.7em;
         padding:1em;
@@ -188,20 +196,152 @@
       .bg-white { background-color: transparent !important; }
       .border { border-width: 0 !important; }
     </style>
-  <script type="importmap">
-{
-  "imports": {
-    "react/": "https://aistudiocdn.com/react@^19.2.0/",
-    "react": "https://aistudiocdn.com/react@^19.2.0",
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
-    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.555.0",
-    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.30.0",
-    "recharts": "https://aistudiocdn.com/recharts@^3.5.0"
-  }
-}
-</script>
-</head>
+
+    <!-- React 18 UMD: ใช้ได้กับ GitHub Pages -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  </head>
   <body>
     <div id="root"></div>
-  </body>
-</html>
+
+    <script>
+      const e = React.createElement;
+
+      function App() {
+        const [role, setRole] = React.useState("student");
+        const [emotion, setEmotion] = React.useState("");
+        const [diaryText, setDiaryText] = React.useState("");
+        const [diaries, setDiaries] = React.useState([]);
+
+        const roles = {
+          student: "โหมดนักเรียน",
+          counselor: "โหมดครูที่ปรึกษา",
+          parent: "โหมดผู้ปกครอง",
+        };
+
+        function saveDiary() {
+          const text = diaryText.trim();
+          if (!text) return;
+          const item = {
+            id: Date.now(),
+            text,
+            time: new Date().toLocaleString("th-TH"),
+          };
+          setDiaries((prev) => [item, ...prev]);
+          setDiaryText("");
+        }
+
+        function deleteDiary(id) {
+          setDiaries((prev) => prev.filter((d) => d.id !== id));
+        }
+
+        return e(
+          React.Fragment,
+          null,
+          e(
+            "header",
+            null,
+            e("h1", null, "StarTrack DEMO"),
+            e(
+              "p",
+              { style: { marginTop: "0", marginBottom: "0.4em" } },
+              "บันทึกสภาพจิตใจและติดตามการดูแลนักเรียนแบบง่าย ๆ"
+            )
+          ),
+          e(
+            "nav",
+            null,
+            Object.entries(roles).map(([key, label]) =>
+              e(
+                "button",
+                {
+                  key,
+                  className: "rolebtn" + (role === key ? " active" : ""),
+                  onClick: () => setRole(key),
+                },
+                label
+              )
+            )
+          ),
+          e(
+            "section",
+            null,
+            /* กล่อง 1: อารมณ์วันนี้ */
+            e(
+              "div",
+              { className: "box" },
+              e(
+                "h3",
+                null,
+                e("span", { className: "star" }, "★"),
+                "อารมณ์ของวันนี้"
+              ),
+              e(
+                "div",
+                { className: "emotion-btns" },
+                ["😄", "🙂", "😐", "😕", "😭", "😡"].map((icon) =>
+                  e(
+                    "button",
+                    {
+                      key: icon,
+                      className: emotion === icon ? "selected" : "",
+                      onClick: () => setEmotion(icon),
+                    },
+                    icon
+                  )
+                )
+              ),
+              emotion &&
+                e(
+                  "div",
+                  { className: "msgbox" },
+                  e(
+                    "div",
+                    { className: "msg-entry" },
+                    "วันนี้คุณเลือกอารมณ์ ",
+                    e("strong", null, emotion),
+                    " จุกจิกบันทึกไว้ให้แล้วนะคะ 💜"
+                  )
+                )
+            ),
+
+            /* กล่อง 2: ไดอารี่ */
+            e(
+              "div",
+              { className: "box" },
+              e(
+                "h3",
+                null,
+                e("span", { className: "star" }, "★"),
+                "ไดอารี่สั้น ๆ วันนี้"
+              ),
+              e("textarea", {
+                rows: 3,
+                placeholder:
+                  "วันนี้เกิดอะไรขึ้นบ้าง ที่อยากให้ระบบช่วยจำ...",
+                value: diaryText,
+                onChange: (ev) => setDiaryText(ev.target.value),
+              }),
+              e(
+                "button",
+                { className: "btn-main", onClick: saveDiary },
+                "บันทึกไดอารี่"
+              ),
+              diaries.length > 0 &&
+                e(
+                  "div",
+                  { className: "diary-list" },
+                  diaries.map((item) =>
+                    e(
+                      "div",
+                      { key: item.id, className: "diary-entry" },
+                      e("span", { className: "diary-date" }, item.time),
+                      e(
+                        "button",
+                        {
+                          className: "diary-del-btn",
+                          onClick: () => deleteDiary(item.id),
+                        },
+                        "ลบ"
+                      ),
+                      e("div", null
