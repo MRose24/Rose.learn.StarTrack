@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { getBehaviors, getEmotions } from '../services/storage';
+import { getBehaviors, getEmotions, downloadCSV } from '../services/storage';
 import { STUDENTS, BehaviorRecord, EmotionRecord } from '../types';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, Legend } from 'recharts';
-import { BrainCircuit, Star, Loader2, Award, Users } from 'lucide-react';
+import { BrainCircuit, Star, Loader2, Award, Users, Download } from 'lucide-react';
 import { generateStudentInsight } from '../services/geminiService';
 import { EMOTIONS } from './MoodTracker';
 
@@ -32,6 +32,27 @@ const Dashboard: React.FC = () => {
     if (range === 'term') return diffDays <= 120;
     if (range === 'year') return diffDays <= 365;
     return true;
+  };
+
+  const handleExportCSV = () => {
+    const headers = ["Date", "Student Name", "Category", "Type/Emotion", "Details/Note", "Score/Value"];
+    const csvRows: (string | number)[][] = [];
+
+    // Process Behaviors
+    Object.values(behaviors).flat().filter(b => filterDataByRange(b.date)).forEach(b => {
+      csvRows.push([b.date, b.studentName, "Behavior", b.type, b.details, b.starChange]);
+    });
+
+    // Process Emotions (Students Only)
+    const studentNames = STUDENTS.map(s => s.name);
+    emotions.filter(e => studentNames.includes(e.studentName) && filterDataByRange(e.date)).forEach(e => {
+       csvRows.push([e.date, e.studentName, "Emotion", e.emotion, e.note, ""]);
+    });
+    
+    // Sort by date desc
+    csvRows.sort((a,b) => String(b[0]).localeCompare(String(a[0])));
+
+    downloadCSV(`startrack_export_${range}_${new Date().toISOString().slice(0,10)}.csv`, headers, csvRows);
   };
 
   const handleAIAnalysis = async (studentName: string) => {
@@ -91,18 +112,29 @@ const Dashboard: React.FC = () => {
       <h2>🏫 ผู้บริหาร</h2>
       
       <div className="box">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1em' }}>
             <h3 style={{ marginBottom: 0 }}><Award size={24} /> ภาพรวมโรงเรียน</h3>
-            <select
-                value={range}
-                onChange={(e) => setRange(e.target.value as TimeRange)}
-                style={{ width: 'auto', margin: 0 }}
-            >
-                <option value="week">สัปดาห์นี้</option>
-                <option value="month">เดือนนี้</option>
-                <option value="term">ภาคเรียนนี้</option>
-                <option value="year">ปีนี้</option>
-            </select>
+            
+            <div style={{ display: 'flex', gap: '1em', alignItems: 'center' }}>
+                <select
+                    value={range}
+                    onChange={(e) => setRange(e.target.value as TimeRange)}
+                    style={{ width: 'auto', margin: 0 }}
+                >
+                    <option value="week">สัปดาห์นี้</option>
+                    <option value="month">เดือนนี้</option>
+                    <option value="term">ภาคเรียนนี้</option>
+                    <option value="year">ปีนี้</option>
+                </select>
+                
+                <button 
+                    onClick={handleExportCSV} 
+                    className="test-btn"
+                    style={{ margin: 0, background: '#3c8c85', padding: '0.5em 1em' }}
+                >
+                    <Download size={16} /> Export CSV
+                </button>
+            </div>
           </div>
       </div>
 

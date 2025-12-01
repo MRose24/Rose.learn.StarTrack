@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { BehaviorType, BehaviorRecord } from '../types';
-import { saveBehavior, getTodayDate, getBehaviors, deleteBehavior } from '../services/storage';
-import { UserCheck, Star, AlertTriangle, CheckCircle2, Save, History, Trash2 } from 'lucide-react';
+import { saveBehavior, getTodayDate, getBehaviors } from '../services/storage';
+import { UserCheck, Star, AlertTriangle, CheckCircle2, Save, History } from 'lucide-react';
 
 interface BehaviorTrackerProps {
   studentName: string;
@@ -43,13 +43,6 @@ const BehaviorTracker: React.FC<BehaviorTrackerProps> = ({ studentName }) => {
     setDetail('');
     setStars(1);
     loadHistory();
-  };
-
-  const handleDelete = (id: string) => {
-    if (window.confirm("คุณต้องการลบประวัติพฤติกรรมนี้ใช่หรือไม่? การลบจะไม่สามารถกู้คืนได้")) {
-        deleteBehavior(studentName, id);
-        loadHistory();
-    }
   };
 
   const totalStars = history.reduce((acc, curr) => acc + curr.starChange, 0);
@@ -131,7 +124,6 @@ const BehaviorTracker: React.FC<BehaviorTrackerProps> = ({ studentName }) => {
                         <th>รายละเอียด</th>
                         <th>ประเภท</th>
                         <th>จำนวน</th>
-                        <th>ลบ</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -145,18 +137,9 @@ const BehaviorTracker: React.FC<BehaviorTrackerProps> = ({ studentName }) => {
                             <td>
                                 {h.type === 'good' ? '+' : h.type === 'bad' ? '-' : ''}{Math.abs(h.starChange)} ⭐
                             </td>
-                            <td>
-                                <button 
-                                    onClick={() => handleDelete(h.id)}
-                                    style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#d04a6a' }}
-                                    title="ลบรายการ"
-                                >
-                                    <Trash2 size={16} />
-                                </button>
-                            </td>
                         </tr>
                     ))}
-                    {history.length === 0 && <tr><td colSpan={5} style={{textAlign:'center'}}>ไม่มีข้อมูล</td></tr>}
+                    {history.length === 0 && <tr><td colSpan={4} style={{textAlign:'center'}}>ไม่มีข้อมูล</td></tr>}
                 </tbody>
             </table>
         </div>

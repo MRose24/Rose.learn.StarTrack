@@ -11,6 +11,27 @@ export const getTodayDate = (): string => {
   return new Date().toISOString().slice(0, 10);
 };
 
+// --- CSV Export Utility ---
+export const downloadCSV = (filename: string, headers: string[], rows: (string | number)[][]) => {
+  const csvContent = [
+    headers.join(','),
+    ...rows.map(row => row.map(item => `"${String(item).replace(/"/g, '""')}"`).join(','))
+  ].join('\n');
+
+  // Add BOM for Excel support (UTF-8)
+  const blob = new Blob([`\uFEFF${csvContent}`], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  if (link.download !== undefined) {
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', filename);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+};
+
 // --- Emotions ---
 export const getEmotions = (): EmotionRecord[] => {
   try {
@@ -53,16 +74,6 @@ export const saveBehavior = (studentName: string, record: BehaviorRecord) => {
   }
   current[studentName].push(record);
   localStorage.setItem(STORAGE_KEY_BEHAVIORS, JSON.stringify(current));
-};
-
-export const deleteBehavior = (studentName: string, id: string) => {
-  try {
-    const current = getBehaviors();
-    if (current[studentName]) {
-      current[studentName] = current[studentName].filter(b => b.id !== id);
-      localStorage.setItem(STORAGE_KEY_BEHAVIORS, JSON.stringify(current));
-    }
-  } catch (e) { console.error(e); }
 };
 
 // --- Diary ---

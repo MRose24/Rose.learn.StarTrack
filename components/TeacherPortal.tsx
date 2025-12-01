@@ -3,9 +3,9 @@ import { EmotionRecord, Appointment, TeacherReport, STUDENTS } from '../types';
 import MoodTracker, { EMOTIONS } from './MoodTracker';
 import PsyTestSection from './PsyTestSection';
 import BehaviorTracker from './BehaviorTracker';
-import { getEmotions, getAppointments, saveAppointment, saveTeacherReport, getTeacherReports } from '../services/storage';
+import { getEmotions, getAppointments, saveAppointment, saveTeacherReport, getTeacherReports, getBehaviors, downloadCSV } from '../services/storage';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, Legend } from 'recharts';
-import { Calendar, Send, Inbox, MessageSquare, UserCheck } from 'lucide-react';
+import { Calendar, Send, Inbox, MessageSquare, UserCheck, Download } from 'lucide-react';
 
 const TeacherPortal: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'wellness' | 'management'>('wellness');
@@ -67,6 +67,27 @@ const TeacherPortal: React.FC = () => {
     alert("ส่งรายงานถึงครูประจำชั้นแล้ว");
   };
 
+  const handleExportStudentCSV = () => {
+     const headers = ["Date", "Student Name", "Category", "Type/Emotion", "Details/Note", "Score/Value"];
+     const csvRows: (string | number)[][] = [];
+     
+     // Behaviors
+     const studentBehaviors = getBehaviors()[selectedStudent] || [];
+     studentBehaviors.forEach(b => {
+         csvRows.push([b.date, b.studentName, "Behavior", b.type, b.details, b.starChange]);
+     });
+
+     // Emotions
+     const allEmotions = getEmotions();
+     allEmotions.filter(e => e.studentName === selectedStudent).forEach(e => {
+         csvRows.push([e.date, e.studentName, "Emotion", e.emotion, e.note, ""]);
+     });
+     
+     csvRows.sort((a,b) => String(b[0]).localeCompare(String(a[0])));
+     
+     downloadCSV(`startrack_history_${selectedStudent}.csv`, headers, csvRows);
+  };
+
   const getPieData = () => {
     const counts: Record<string, number> = {};
     EMOTIONS.forEach(e => counts[e.label] = 0);
@@ -112,7 +133,15 @@ const TeacherPortal: React.FC = () => {
       {activeTab === 'management' ? (
           <div>
               <div className="box">
-                <h3><UserCheck size={20} /> ดูแลนักเรียน & รายงานพฤติกรรม</h3>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <h3><UserCheck size={20} /> ดูแลนักเรียน & รายงานพฤติกรรม</h3>
+                    <button 
+                        onClick={handleExportStudentCSV}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#3c8c85', display: 'flex', alignItems: 'center', gap: '5px' }}
+                    >
+                        <Download size={16} /> ประวัติ (CSV)
+                    </button>
+                </div>
                 
                 <label>เลือกนักเรียนที่ต้องการจัดการ:</label>
                 <select 
